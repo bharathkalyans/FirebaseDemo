@@ -31,12 +31,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         //Realtime Updating of TextView when data changes!
-        subscribeToRealTimeUpdates()
+//        subscribeToRealTimeUpdates()
 
-        /*btnRetrieveDatabase.setOnClickListener {
+        btnRetrieveDatabase.setOnClickListener {
             retrievePersons()
         }
-*/
     }
 
     private fun subscribeToRealTimeUpdates() {
@@ -72,8 +71,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun retrievePersons() = CoroutineScope(Dispatchers.IO).launch {
+        var age1 = 0
+        age1 = etAge1.text.toString().toInt()
+        var age2 = 100
+        age2 = etAge2.text.toString().toInt()
         try {
-            val querySnapshot = personCollectionRef.get().await()
+            val querySnapshot = personCollectionRef
+                .whereGreaterThan("age", age1)
+                .whereLessThan("age", age2)
+                .orderBy("age")
+                .get()
+                .await()
+
             val sb = StringBuilder()
             for (documents in querySnapshot.documents) {
                 val person = documents.toObject(Person::class.java)
