@@ -4,13 +4,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,10 +29,30 @@ class MainActivity : AppCompatActivity() {
             savePerson(person)
         }
 
-        btnRetrieveDatabase.setOnClickListener {
+        //Realtime Updating of TextView when data changes!
+        subscribeToRealTimeUpdates()
+
+        /*btnRetrieveDatabase.setOnClickListener {
             retrievePersons()
         }
+*/
+    }
 
+    private fun subscribeToRealTimeUpdates() {
+        personCollectionRef.addSnapshotListener { querySnapShot, firebaseException ->
+            firebaseException?.let {
+                Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                return@addSnapshotListener
+            }
+            querySnapShot?.let {
+                val sb = StringBuilder()
+                for (documents in it) {
+                    val person = documents.toObject<Person>()
+                    sb.append("$person\n")
+                }
+                tvPersonData.text = sb.toString()
+            }
+        }
     }
 
     private fun retrievePersons() = CoroutineScope(Dispatchers.IO).launch {
