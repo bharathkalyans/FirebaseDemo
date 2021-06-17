@@ -13,6 +13,7 @@ import kotlinx.coroutines.tasks.await
 class MainActivity : AppCompatActivity() {
 
     private val personCollectionRef = Firebase.firestore.collection("persons")
+    private val studentCollectionRef = Firebase.firestore.collection("students")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +54,21 @@ class MainActivity : AppCompatActivity() {
                 tvPersonData.text = sb.toString()
             }
         }
+        //Below Listener will over ride the above listener making the Person Data not Visible!
+//        studentCollectionRef.addSnapshotListener { querySnapShot, firebaseException ->
+//            firebaseException?.let {
+//                Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+//                return@addSnapshotListener
+//            }
+//            querySnapShot?.let {
+//                val sb = StringBuilder()
+//                for (documents in it) {
+//                    val student = documents.toObject<Student>()
+//                    sb.append("$student\n")
+//                }
+//                tvPersonData.text = sb.toString()
+//            }
+//        }
     }
 
     private fun retrievePersons() = CoroutineScope(Dispatchers.IO).launch {
@@ -75,6 +91,7 @@ class MainActivity : AppCompatActivity() {
     private fun savePerson(person: Person) = CoroutineScope(Dispatchers.IO).launch {
         try {
             personCollectionRef.add(person).await()
+//            studentCollectionRef.add(Student("Student")).await()
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@MainActivity, "Successfully Saved Data", Toast.LENGTH_SHORT)
                     .show()
