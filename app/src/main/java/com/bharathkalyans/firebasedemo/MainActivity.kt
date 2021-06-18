@@ -3,6 +3,7 @@ package com.bharathkalyans.firebasedemo
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
@@ -13,7 +14,6 @@ import kotlinx.coroutines.tasks.await
 class MainActivity : AppCompatActivity() {
 
     private val personCollectionRef = Firebase.firestore.collection("persons")
-    private val studentCollectionRef = Firebase.firestore.collection("students")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,13 +21,14 @@ class MainActivity : AppCompatActivity() {
 
 
         btnSaveToDatabase.setOnClickListener {
-            val firstName = firstName.text.toString()
-            val lastName = lastName.text.toString()
-            val age = age.text.toString().toInt()
-
-            val person = Person(firstName, lastName, age)
-
+            val person = getOldPerson()
             savePerson(person)
+        }
+
+        btnUpdateToDatabase.setOnClickListener {
+            val oldPerson = getOldPerson()
+            val newPersonMap = getNewPersonMap()
+            updatePerson(oldPerson, newPersonMap)
         }
 
         //Realtime Updating of TextView when data changes!
@@ -36,6 +37,65 @@ class MainActivity : AppCompatActivity() {
         btnRetrieveDatabase.setOnClickListener {
             retrievePersons()
         }
+    }
+
+    private fun updatePerson(person: Person, newPersonMap: Map<String, Any>) =
+        CoroutineScope(Dispatchers.IO).launch {
+            val personQuery = personCollectionRef
+                .whereEqualTo("firstName", person.firstName)
+                .whereEqualTo("lastName", person.lastName)
+                .whereEqualTo("age", person.age)
+                .get()
+                .await()
+            if (personQuery.documents.isNotEmpty()) {
+                for (document in personQuery) {
+                    try {
+                        personCollectionRef.document(document.id).set(
+                            newPersonMap,
+                            SetOptions.merge()
+                        ).await()
+
+                    } catch (e: java.lang.Exception) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "No Person Matched!", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+
+        }
+
+    private fun getNewPersonMap(): Map<String, Any> {
+        val firstName = newFirstName.text
+        val lastName = newLastName.text
+        val age = newAge.text.toString()
+
+        val map = mutableMapOf<String, Any>()
+
+        if (firstName.isNotEmpty()) {
+            map["firstName"] = firstName.toString()
+        }
+        if (lastName.isNotEmpty()) {
+            map["lastName"] = lastName.toString()
+        }
+        if (firstName.isNotEmpty()) {
+            map["age"] = age.toInt()
+        }
+        return map
+    }
+
+    private fun getOldPerson(): Person {
+        val firstName = firstName.text.toString()
+        val lastName = lastName.text.toString()
+        val age = age.text.toString().toInt()
+
+        return Person(firstName, lastName, age)
     }
 
     private fun subscribeToRealTimeUpdates() {
@@ -71,10 +131,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun retrievePersons() = CoroutineScope(Dispatchers.IO).launch {
-        var age1 = 0
-        age1 = etAge1.text.toString().toInt()
-        var age2 = 100
-        age2 = etAge2.text.toString().toInt()
+        var age1 = etAge1.text.toString().toInt()
+        var age2 = etAge2.text.toString().toInt()
         try {
             val querySnapshot = personCollectionRef
                 .whereGreaterThan("age", age1)
