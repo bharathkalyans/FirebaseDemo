@@ -3,7 +3,6 @@ package com.bharathkalyans.firebasedemo
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -39,6 +38,30 @@ class MainActivity : AppCompatActivity() {
         btnDelete.setOnClickListener {
             deletePerson(getOldPerson())
         }
+
+        btnBatchWrite.setOnClickListener {
+            changeName("9STzpdnXJ0lQ4CgNzpP2","Elon","Musk")
+        }
+    }
+
+    private fun changeName(
+        personId: String,
+        firstName: String,
+        lastName: String
+    ) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            Firebase.firestore.runBatch { batch ->
+                val personRef = personCollectionRef.document(personId)
+                batch.update(personRef, "firstName", firstName)
+                batch.update(personRef, "lastName", lastName)
+
+            }.await()
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
     }
 
     private fun deletePerson(person: Person) = CoroutineScope(Dispatchers.IO).launch {
@@ -53,10 +76,10 @@ class MainActivity : AppCompatActivity() {
                 try {
                     //Delete's the Whole Document!
                     personCollectionRef.document(document.id).delete().await()
+                    //Delete's Certain Value
 //                    personCollectionRef.document(document.id).update(mapOf(
 //                        "firstName" to FieldValue.delete()
 //                    ))
-
                 } catch (e: java.lang.Exception) {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_SHORT)

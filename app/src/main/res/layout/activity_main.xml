@@ -54,12 +54,12 @@
         android:id="@+id/tvPersonData"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="108dp"
         android:text="@string/person_data"
         android:textSize="15sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.519"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnRetrieveDatabase" />
 
@@ -68,11 +68,13 @@
         android:layout_width="40dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="60dp"
+        android:layout_marginTop="52dp"
         android:ems="10"
-        android:text="0"
         android:inputType="textPersonName"
+        android:text="0"
         app:layout_constraintEnd_toStartOf="@+id/etAge2"
         app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnRetrieveDatabase" />
 
@@ -80,10 +82,11 @@
         android:id="@+id/etAge2"
         android:layout_width="40dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="52dp"
         android:layout_marginEnd="60dp"
         android:ems="10"
-        android:text="100"
         android:inputType="textPersonName"
+        android:text=""
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/etAge1"
@@ -160,4 +163,14 @@
         app:layout_constraintHorizontal_bias="0.508"
         app:layout_constraintStart_toEndOf="@+id/btnRetrieveDatabase"
         app:layout_constraintTop_toBottomOf="@+id/btnUpdateToDatabase" />
+
+    <Button
+        android:id="@+id/btnBatchWrite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Batch Write"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnDelete" />
 </androidx.constraintlayout.widget.ConstraintLayout>
