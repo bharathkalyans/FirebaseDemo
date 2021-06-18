@@ -3,6 +3,7 @@ package com.bharathkalyans.firebasedemo
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -31,12 +32,45 @@ class MainActivity : AppCompatActivity() {
             updatePerson(oldPerson, newPersonMap)
         }
 
-        //Realtime Updating of TextView when data changes!
-//        subscribeToRealTimeUpdates()
-
         btnRetrieveDatabase.setOnClickListener {
             retrievePersons()
         }
+
+        btnDelete.setOnClickListener {
+            deletePerson(getOldPerson())
+        }
+    }
+
+    private fun deletePerson(person: Person) = CoroutineScope(Dispatchers.IO).launch {
+        val personQuery = personCollectionRef
+            .whereEqualTo("firstName", person.firstName)
+            .whereEqualTo("lastName", person.lastName)
+            .whereEqualTo("age", person.age)
+            .get()
+            .await()
+        if (personQuery.documents.isNotEmpty()) {
+            for (document in personQuery) {
+                try {
+                    //Delete's the Whole Document!
+                    personCollectionRef.document(document.id).delete().await()
+//                    personCollectionRef.document(document.id).update(mapOf(
+//                        "firstName" to FieldValue.delete()
+//                    ))
+
+                } catch (e: java.lang.Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+            }
+        } else {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@MainActivity, "No Person Matched!", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+
     }
 
     private fun updatePerson(person: Person, newPersonMap: Map<String, Any>) =
@@ -51,8 +85,7 @@ class MainActivity : AppCompatActivity() {
                 for (document in personQuery) {
                     try {
                         personCollectionRef.document(document.id).set(
-                            newPersonMap,
-                            SetOptions.merge()
+                            newPersonMap, SetOptions.merge()
                         ).await()
 
                     } catch (e: java.lang.Exception) {
@@ -131,8 +164,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun retrievePersons() = CoroutineScope(Dispatchers.IO).launch {
-        var age1 = etAge1.text.toString().toInt()
-        var age2 = etAge2.text.toString().toInt()
+        val age1 = etAge1.text.toString().toInt()
+        val age2 = etAge2.text.toString().toInt()
+
         try {
             val querySnapshot = personCollectionRef
                 .whereGreaterThan("age", age1)
